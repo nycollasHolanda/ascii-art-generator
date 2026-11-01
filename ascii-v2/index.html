@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Conversor de Imagem para ASCII</title>
+    <meta name="description"
+        content="Transforme imagens em arte ASCII direto no navegador: vários estilos, cores, efeitos e padrões criativos. Grátis e sem marca d'água.">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="css/styles.css">
+    <script type="module" src="js/main.js"></script>
+</head>
+
+<body>
+    <header class="topbar">
+        <a class="brand" href="./">ASCII Art Generator</a>
+        <nav class="tabs" aria-label="Modo">
+            <button class="tab is-active" data-tab="image" aria-pressed="true">Imagem</button>
+            <button class="tab" data-tab="pattern" aria-pressed="false">Padrões</button>
+        </nav>
+        <a class="toplink" href="howToUse/como-usar.html">Como usar</a>
+    </header>
+
+    <main class="app">
+        <!-- Resultado -->
+        <section class="stage" aria-label="Resultado">
+            <div class="toolbar">
+                <label>Formato
+                    <select id="export-format">
+                        <option value="png">PNG</option>
+                        <option value="jpeg">JPEG</option>
+                        <option value="webp">WebP</option>
+                        <option value="txt">Texto (TXT)</option>
+                    </select>
+                </label>
+                <button id="btn-download" class="btn primary" disabled>Baixar</button>
+                <button id="btn-copy" class="btn" disabled>Copiar</button>
+            </div>
+
+            <div class="viewport" id="viewport">
+                <canvas id="art" hidden></canvas>
+                <label class="dropzone" id="dropzone" for="file">
+                    <strong>Escolha uma imagem</strong>
+                    <span>ou arraste e solte aqui</span>
+                </label>
+            </div>
+            <input type="file" id="file" accept="image/*" hidden>
+        </section>
+
+        <!-- Controles -->
+        <aside class="panel" id="controls">
+            <section data-tab-panel="image">
+                <button id="btn-pick" class="btn block" type="button">Escolher imagem…</button>
+            </section>
+
+            <section>
+                <h2>Tamanho</h2>
+                <label class="field">
+                    <span>Largura <output data-out="cols"></output> colunas</span>
+                    <input type="range" data-key="cols" min="20" max="300" value="100">
+                </label>
+                <label class="field" data-tab-panel="pattern">
+                    <span>Altura <output data-out="rows"></output> linhas</span>
+                    <input type="range" data-key="rows" min="20" max="200" value="60">
+                </label>
+            </section>
+
+            <section>
+                <h2>Estilo</h2>
+                <label class="field">
+                    <span>Caracteres</span>
+                    <select data-key="charset">
+                        <option value="classic">Clássico</option>
+                        <option value="shades">Tons</option>
+                        <option value="braille">Braille (Unicode)</option>
+                        <option value="custom">Personalizado</option>
+                    </select>
+                </label>
+                <label class="field" data-when="charset=custom">
+                    <span>Do mais denso ao mais leve</span>
+                    <input type="text" data-key="customChars" value="@%#*+=-:. " placeholder="Ex: @#$%&amp;*+-= "
+                        spellcheck="false" autocomplete="off">
+                </label>
+                <label class="field">
+                    <span>Cor</span>
+                    <select data-key="color">
+                        <option value="mono">Monocromático</option>
+                        <option value="color">Colorido</option>
+                        <option value="rainbow">Arco-íris</option>
+                        <option value="matrix">Matrix</option>
+                    </select>
+                </label>
+                <label class="check">
+                    <input type="checkbox" data-key="invert"> Inverter claro/escuro
+                </label>
+            </section>
+
+            <section data-tab-panel="image">
+                <h2>Efeitos</h2>
+                <label class="check"><input type="checkbox" data-key="flipH"> Espelhar horizontalmente</label>
+                <label class="check"><input type="checkbox" data-key="flipV"> Espelhar verticalmente</label>
+                <label class="check"><input type="checkbox" data-key="outline"> Realçar contornos</label>
+            </section>
+
+            <section data-tab-panel="pattern">
+                <h2>Padrão</h2>
+                <label class="field">
+                    <span>Tipo</span>
+                    <select data-key="patternType">
+                        <option value="fractal">Fractal</option>
+                        <option value="noise">Ruído (Perlin)</option>
+                        <option value="waves">Ondas</option>
+                        <option value="spiral">Espiral</option>
+                        <option value="radial">Radial</option>
+                    </select>
+                </label>
+
+                <div data-when="patternType=fractal">
+                    <label class="field">
+                        <span>Fractal</span>
+                        <select data-key="fractalType">
+                            <option value="mandelbrot">Mandelbrot</option>
+                            <option value="julia">Julia</option>
+                            <option value="burning-ship">Burning Ship</option>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>Iterações <output data-out="iterations"></output></span>
+                        <input type="range" data-key="iterations" min="10" max="200" value="100">
+                    </label>
+                    <div data-when="fractalType=julia">
+                        <label class="field">
+                            <span>Parte real <output data-out="juliaRe"></output></span>
+                            <input type="range" data-key="juliaRe" min="-2" max="2" step="0.01" value="-0.7">
+                        </label>
+                        <label class="field">
+                            <span>Parte imaginária <output data-out="juliaIm"></output></span>
+                            <input type="range" data-key="juliaIm" min="-2" max="2" step="0.01" value="0.27">
+                        </label>
+                    </div>
+                </div>
+
+                <div data-when="patternType=noise">
+                    <label class="field">
+                        <span>Escala <output data-out="noiseScale"></output></span>
+                        <input type="range" data-key="noiseScale" min="1" max="200" value="50">
+                    </label>
+                    <label class="field">
+                        <span>Camadas (octaves) <output data-out="octaves"></output></span>
+                        <input type="range" data-key="octaves" min="1" max="8" value="3">
+                    </label>
+                    <button id="btn-seed" class="btn block" type="button">Nova semente</button>
+                </div>
+
+                <div data-when="patternType=waves">
+                    <label class="field">
+                        <span>Onda</span>
+                        <select data-key="waveType">
+                            <option value="sine">Seno</option>
+                            <option value="cosine">Cosseno</option>
+                            <option value="tangent">Tangente</option>
+                            <option value="complex">Complexa</option>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>Frequência <output data-out="frequency"></output></span>
+                        <input type="range" data-key="frequency" min="1" max="50" value="20">
+                    </label>
+                    <label class="field">
+                        <span>Amplitude <output data-out="amplitude"></output></span>
+                        <input type="range" data-key="amplitude" min="10" max="200" value="100">
+                    </label>
+                </div>
+
+                <div data-when="patternType=spiral">
+                    <label class="field">
+                        <span>Espiral</span>
+                        <select data-key="spiralType">
+                            <option value="archimedean">Arquimediana</option>
+                            <option value="logarithmic">Logarítmica</option>
+                            <option value="hyperbolic">Hiperbólica</option>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>Densidade <output data-out="density"></output></span>
+                        <input type="range" data-key="density" min="1" max="100" value="50">
+                    </label>
+                    <label class="field">
+                        <span>Rotação <output data-out="rotation"></output>°</span>
+                        <input type="range" data-key="rotation" min="0" max="360" value="0">
+                    </label>
+                </div>
+
+                <div data-when="patternType=radial">
+                    <label class="field">
+                        <span>Variação</span>
+                        <select data-key="radialType">
+                            <option value="complex">Complexo</option>
+                            <option value="geometric">Geométrico</option>
+                            <option value="organic">Orgânico</option>
+                        </select>
+                    </label>
+                </div>
+            </section>
+        </aside>
+    </main>
+
+    <footer class="footer">
+        <span>© 2026 ASCII Art Generator</span>
+        <nav>
+            <a href="/politica-de-privacidade">Política de Privacidade</a>
+            <a href="/termos-de-uso">Termos de Uso</a>
+        </nav>
+    </footer>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+
+</html>
